@@ -137,7 +137,7 @@ func main() {
 					run("git", "clone", cloneURL)
 					os.Chdir(work_dir + repo)
 
-					run("git", "config", "user.email", CONFIG.EMAIL)
+					run("git", "config", "user.email", config.EMAIL)
 					run("git", "config", "user.name", "Cherry Pick Bot")
 					run("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
 					run("git", "cherry-pick", "--abort")
