@@ -27,15 +27,15 @@ func run(name string, arg ...string) error {
 }
 
 func main() {
-	work_dir := config.WORK_DIR
+	work_dir := config.WorkDir
 
 	os.MkdirAll(work_dir, 0775)
 
-	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PRIVATE_KEY)
+	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: config.ACCESS_TOKEN},
+		&oauth2.Token{AccessToken: config.AccessToken},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 
@@ -71,7 +71,7 @@ func main() {
 					run("git", "clone", cloneURL)
 					os.Chdir(work_dir + repo)
 
-					run("git", "config", "user.email", config.EMAIL)
+					run("git", "config", "user.email", config.Email)
 					run("git", "config", "user.name", "Cherry Pick Bot")
 					run("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
 					run("git", "cherry-pick", "--abort")
@@ -137,7 +137,7 @@ func main() {
 					run("git", "clone", cloneURL)
 					os.Chdir(work_dir + repo)
 
-					run("git", "config", "user.email", config.EMAIL)
+					run("git", "config", "user.email", config.Email)
 					run("git", "config", "user.name", "Cherry Pick Bot")
 					run("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
 					run("git", "cherry-pick", "--abort")
@@ -163,6 +163,6 @@ func main() {
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 
-		time.Sleep(config.SLEEP_TIME)
+		time.Sleep(config.SleepTime)
 	}
 }
