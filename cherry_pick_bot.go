@@ -163,7 +163,6 @@ func main() {
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 
-		fmt.Println("Sleeping for a while")
-		time.Sleep(60 * time.Second)
+		time.Sleep(config.SLEEP_TIME)
 	}
 }
