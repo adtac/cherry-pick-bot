@@ -30,6 +30,8 @@ func main() {
 		if resp.Response.StatusCode != 200 {
 			utils.Die(err)
 		}
+
+		client.Activity.MarkNotificationsRead(ctx, time.Now())
 		
 		for _, notification := range(notifications) {
 			if notification.GetUnread() {
@@ -139,8 +141,6 @@ func main() {
 				}
 			}
 		}
-
-		client.Activity.MarkNotificationsRead(ctx, time.Now())
 
 		fmt.Println("sleep")
 		time.Sleep(config.SleepTime)
