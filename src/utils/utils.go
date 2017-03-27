@@ -2,6 +2,7 @@ package utils
 
 import (
     "os"
+    "os/exec"
     "strings"
 )
 
@@ -15,4 +16,9 @@ func SanitizeWorkDir(dir string) string {
 	os.MkdirAll(dir, 0775)
 
     return dir
+}
+
+func ExecCommand(name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	return cmd.Run()
 }

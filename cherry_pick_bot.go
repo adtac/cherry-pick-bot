@@ -2,43 +2,26 @@ package main
 
 import (
 	"strings"
-	"bytes"
 	"os"
-	"os/exec"
 	"fmt"
 	"time"
 	"strconv"
 
-	"golang.org/x/oauth2"
 	"github.com/google/go-github/github"
-	"golang.org/x/net/context"
 
 	"config"
     "utils"
+    "authenticate"
 )
 
 
-func run(name string, arg ...string) error {
-	cmd := exec.Command(name, arg...)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-
-	return err
-}
 
 func main() {
 	work_dir := utils.SanitizeWorkDir(config.WorkDir)
 
 	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
 
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: config.AccessToken},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
+    ctx, client := authenticate.Authenticate(config.AccessToken)
 
 	for true {
 		notifications, _, _ := client.Activity.ListNotifications(
@@ -67,14 +50,14 @@ func main() {
 
 					os.MkdirAll(work_dir + login, 0775)
 					os.Chdir(work_dir + login)
-					run("git", "clone", cloneURL)
+					utils.ExecCommand("git", "clone", cloneURL)
 					os.Chdir(work_dir + repo)
 
-					run("git", "config", "user.email", config.Email)
-					run("git", "config", "user.name", "Cherry Pick Bot")
-					run("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
-					run("git", "cherry-pick", "--abort")
-					run("git", "rebase", "--abort")
+					utils.ExecCommand("git", "config", "user.email", config.Email)
+					utils.ExecCommand("git", "config", "user.name", "Cherry Pick Bot")
+					utils.ExecCommand("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
+					utils.ExecCommand("git", "cherry-pick", "--abort")
+					utils.ExecCommand("git", "rebase", "--abort")
 
 					u := (*notification.Subject.URL)[22:]
 					req, _ := client.NewRequest("GET", u, nil)
@@ -82,18 +65,18 @@ func main() {
 					client.Do(ctx, req, pull)
 
 					creator := *pull.User.Login
-					run("git", "remote", "add", creator, *pull.Head.Repo.GitURL)
-					run("git", "fetch", creator)
+					utils.ExecCommand("git", "remote", "add", creator, *pull.Head.Repo.GitURL)
+					utils.ExecCommand("git", "fetch", creator)
 
-					if run("git", "checkout", "-b", "cherry-pick-bot/patch") != nil {
+					if utils.ExecCommand("git", "checkout", "-b", "cherry-pick-bot/patch") != nil {
 						fmt.Println("branch probably exists")
-						if run("git", "checkout", "cherry-pick-bot/patch") != nil {
+						if utils.ExecCommand("git", "checkout", "cherry-pick-bot/patch") != nil {
 							fmt.Println("nope, can't create/switch to branch")
 							continue
 						}
 					}
 
-					if run("git", "cherry-pick", *pull.Base.SHA + ".." + *pull.Head.SHA) != nil {
+					if utils.ExecCommand("git", "cherry-pick", *pull.Base.SHA + ".." + *pull.Head.SHA) != nil {
 						c := "Uh-oh. I can't cherry-pick these commits. Any of the following could be the reason:\n\n- There are conflicts due to other commits being cherry-picked before.\n- Something has been merged into master and that's causing a conflict (in this case, ask the author of this commit to rebase to master and resolve all conflicts; nothing I can do here).\n- These commits have already been added for cherry-picking! If the commits have changed since, please close that PR and cherry-pick everything again."
 						comment := &github.IssueComment{Body: &c}
 						client.Issues.CreateComment(ctx, login, project, PR_ID, comment)
@@ -101,7 +84,7 @@ func main() {
 						continue
 					}
 
-					run("git", "push", "--set-upstream", "origin", "cherry-pick-bot/patch", "--force")
+					utils.ExecCommand("git", "push", "--set-upstream", "origin", "cherry-pick-bot/patch", "--force")
 
 					if PR == nil {
 						title := "cherry-pick-bot with a bunch of commits"
@@ -133,17 +116,17 @@ func main() {
 
 					os.MkdirAll(work_dir + login, 0775)
 					os.Chdir(work_dir + login)
-					run("git", "clone", cloneURL)
+					utils.ExecCommand("git", "clone", cloneURL)
 					os.Chdir(work_dir + repo)
 
-					run("git", "config", "user.email", config.Email)
-					run("git", "config", "user.name", "Cherry Pick Bot")
-					run("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
-					run("git", "cherry-pick", "--abort")
-					run("git", "rebase", "--abort")
+					utils.ExecCommand("git", "config", "user.email", config.Email)
+					utils.ExecCommand("git", "config", "user.name", "Cherry Pick Bot")
+					utils.ExecCommand("git", "remote", "set-url", "origin", "git@github.com:" + repo + ".git")
+					utils.ExecCommand("git", "cherry-pick", "--abort")
+					utils.ExecCommand("git", "rebase", "--abort")
 
-					run("git", "checkout", "cherry-pick-bot/patch")
-					if run("git", "pull", "--rebase", "origin", "master") != nil {
+					utils.ExecCommand("git", "checkout", "cherry-pick-bot/patch")
+					if utils.ExecCommand("git", "pull", "--rebase", "origin", "master") != nil {
 						c := "Uh-oh. I couldn't rebase. This may happen because master has changed a lot and there are conflicts now. I can't really resolve conflicts, so you're going to have to do this one manually. Sorry!"
 						comment := &github.IssueComment{Body: &c}
 						client.Issues.CreateComment(ctx, login, project, PR_ID, comment)
@@ -151,7 +134,7 @@ func main() {
 						continue
 					}
 
-					run("git", "push", "--set-upstream", "origin", "cherry-pick-bot/patch", "--force")
+					utils.ExecCommand("git", "push", "--set-upstream", "origin", "cherry-pick-bot/patch", "--force")
 
 					c := "Done! Rebased this PR."
 					comment := &github.IssueComment{Body: &c}
@@ -162,6 +145,7 @@ func main() {
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 
+        fmt.Println("sleep")
 		time.Sleep(config.SleepTime)
 	}
 }
