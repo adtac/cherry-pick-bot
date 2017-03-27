@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 
 	"config"
+    "utils"
 )
 
 
@@ -27,9 +28,7 @@ func run(name string, arg ...string) error {
 }
 
 func main() {
-	work_dir := config.WorkDir
-
-	os.MkdirAll(work_dir, 0775)
+	work_dir := utils.SanitizeWorkDir(config.WorkDir)
 
 	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
 
