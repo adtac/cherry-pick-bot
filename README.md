@@ -5,6 +5,16 @@ A bot to help you cherry-pick PRs that are ready to merge but need a rebase.
 To get this running in your server, please fill the `src/config/config.go`
 file with your credentials.
 
+### Installation
+
+Dependencies: [`oauth2`](https://godoc.org/golang.org/x/oauth2), [`go-github`](https://godoc.org/github.com/google/go-github/github), and [`context`](https://godoc.org/golang.org/x/net/context). To install these:
+
+```bash
+$ go get -u golang.org/x/oauth2
+$ go get -u github.com/google/go-github
+$ go get -u golang.org/x/net/context
+```
+
 ### License
 
 ```
