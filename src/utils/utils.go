@@ -5,10 +5,25 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"strconv"
 
-	"github.com/google/go-github/github"
+	"config"
 )
+
+func LoadEnvironment() {
+	m := make(map[string]*string)
+	m["GITHUB_ACCESS_TOKEN"] = &config.AccessToken
+	m["GITHUB_EMAIL"] = &config.Email
+	m["PRIVATE_KEY"] = &config.PrivateKey
+				
+	for key, val := range(m) {
+		var_val, present := os.LookupEnv(key)
+		if present {
+			*val = var_val
+		}
+	}
+
+	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
+}
 
 // sanitizes the work directory (adds a slashes at the end) and creates
 // the directory
@@ -28,23 +43,7 @@ func ExecCommand(name string, arg ...string) error {
 }
 
 func Die(err error) {
-	panic(fmt.Sprintf("%s", err))
-}
-
-func ExtractNotification(notification *github.Notification) (login string, project string, repo string, cloneURL string, PR_ID int) {
-	project = *notification.Repository.Name
-	repo = *notification.Repository.FullName
-
-	splits := strings.Split(*notification.Subject.URL, "/")
-	PR_ID, err := strconv.Atoi(splits[len(splits)-1])
-
-	Die(err)
-
-	// git clone cloneURL
-	cloneURL = "git" + (*notification.Repository.HTMLURL)[5:] + ".git"
-
-	// username
-	login = *notification.Repository.Owner.Login
-
-	return
+	if err != nil {
+		panic(fmt.Sprintf("%s", err))
+	}
 }

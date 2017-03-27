@@ -2,10 +2,15 @@
 
 A bot to help you cherry-pick PRs that are ready to merge but need a rebase.
 
-To get this running in your server, please fill the `src/config/config.go`
-file with your credentials.
+### Usage
 
-### Installation
+To cherry a pick a PR, just comment `@cherry-pick-bot` on the PR. You need to
+have a valid and public email address for this to work.
+
+If you want to rebase an already-cherry-picked PR, simply close that one and
+cherry-pick it again (by commenting `@cherry-pick-bot` on the cherry-picked PR).
+
+### Dependencies
 
 Dependencies: [`oauth2`](https://godoc.org/golang.org/x/oauth2), [`go-github`](https://godoc.org/github.com/google/go-github/github), and [`context`](https://godoc.org/golang.org/x/net/context). To install these:
 
@@ -13,6 +18,25 @@ Dependencies: [`oauth2`](https://godoc.org/golang.org/x/oauth2), [`go-github`](h
 $ go get -u golang.org/x/oauth2
 $ go get -u github.com/google/go-github
 $ go get -u golang.org/x/net/context
+```
+
+### Running
+
+You can set the config values in `src/config/config.go`. To start the server:
+
+```bash
+$ go build cherry_pick_bot.go
+$ ./cherry_pick_bot
+```
+
+Alternatively you can also set the following environment variables:
+
+```bash
+$ export GITHUB_ACCESS_TOKEN=access_token_goes_here
+$ export PRIVATE_KEY=/path/to/ssh/key
+$ export GITHUB_EMAIL=email@example.com
+$ # and then start the server
+$ ./cherry_pick_bot
 ```
 
 ### License
