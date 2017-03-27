@@ -1,7 +1,7 @@
 package config
 
 import (
-    "time"
+	"time"
 )
 
 var AccessToken = "Your Github personal access token goes here."

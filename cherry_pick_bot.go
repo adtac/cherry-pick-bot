@@ -10,8 +10,8 @@ import (
 	"github.com/google/go-github/github"
 
 	"config"
-    "utils"
-    "authenticate"
+	"utils"
+	"authenticate"
 )
 
 
@@ -21,11 +21,15 @@ func main() {
 
 	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
 
-    ctx, client := authenticate.Authenticate(config.AccessToken)
+	ctx, client := authenticate.Authenticate(config.AccessToken)
 
 	for true {
-		notifications, _, _ := client.Activity.ListNotifications(
+		notifications, resp, err := client.Activity.ListNotifications(
 			ctx, &github.NotificationListOptions{All: true})
+
+		if resp.Response.StatusCode != 200 {
+			utils.Die(err)
+		}
 		
 		for _, notification := range(notifications) {
 			if notification.GetUnread() {
@@ -145,7 +149,7 @@ func main() {
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 
-        fmt.Println("sleep")
+		fmt.Println("sleep")
 		time.Sleep(config.SleepTime)
 	}
 }

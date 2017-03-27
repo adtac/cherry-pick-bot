@@ -15,5 +15,5 @@ func Authenticate(access_token string) (context.Context, *github.Client) {
 
 	client := github.NewClient(tc)
 
-    return ctx, client
+	return ctx, client
 }
