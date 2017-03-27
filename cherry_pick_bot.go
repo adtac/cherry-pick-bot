@@ -34,15 +34,8 @@ func main() {
 		for _, notification := range(notifications) {
 			if notification.GetUnread() {
 				if *notification.Reason == "mention" {
-					project := *notification.Repository.Name
-					repo := *notification.Repository.FullName
+					login, project, repo, cloneURL, PR_ID := utils.ExtractNotification(notification)
 					fmt.Println("cherry-pick " + repo)
-
-					_tmp := strings.Split(*notification.Subject.URL, "/")
-					PR_ID, _ := strconv.Atoi(_tmp[len(_tmp)-1])
-
-					cloneURL := "git" + (*notification.Repository.HTMLURL)[5:] + ".git"
-					login := *notification.Repository.Owner.Login
 
 					var PR *github.PullRequest = nil
 					prs, _, _ := client.PullRequests.List(ctx, login, project, &github.PullRequestListOptions{})

@@ -5,6 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"strconv"
+
+	"github.com/google/go-github/github"
 )
 
 // sanitizes the work directory (adds a slashes at the end) and creates
@@ -26,4 +29,22 @@ func ExecCommand(name string, arg ...string) error {
 
 func Die(err error) {
 	panic(fmt.Sprintf("%s", err))
+}
+
+func ExtractNotification(notification *github.Notification) (login string, project string, repo string, cloneURL string, PR_ID int) {
+	project = *notification.Repository.Name
+	repo = *notification.Repository.FullName
+
+	splits := strings.Split(*notification.Subject.URL, "/")
+	PR_ID, err := strconv.Atoi(splits[len(splits)-1])
+
+	Die(err)
+
+	// git clone cloneURL
+	cloneURL = "git" + (*notification.Repository.HTMLURL)[5:] + ".git"
+
+	// username
+	login = *notification.Repository.Owner.Login
+
+	return
 }
