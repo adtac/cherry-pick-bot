@@ -1,4 +1,4 @@
-package gh
+package main
 
 import (
 	"fmt"
@@ -7,18 +7,15 @@ import (
 
 	"golang.org/x/net/context"
 	"github.com/google/go-github/github"
-
-	"config"
-	"utils"
 )
 
 func GetMentions(client *github.Client, ctx context.Context, login string, project string, PR_ID int) []*github.IssueComment {
 	comments, _, err := client.Issues.ListComments(ctx, login, project, PR_ID, &github.IssueListCommentsOptions{Direction: "asc"})
-	utils.Die(err)
+	Die(err)
 
 	res := make([]*github.IssueComment, 0)
 	for _, comment := range(comments) {
-		if strings.Contains(*comment.Body, "@" + config.GithubLogin) {
+		if strings.Contains(*comment.Body, "@" + GithubLogin) {
 			res = append(res, comment)
 		}
 	}
@@ -45,7 +42,7 @@ func ExtractNotification(notification *github.Notification) (login string, proje
 
 	splits := strings.Split(*notification.Subject.URL, "/")
 	PR_ID, err := strconv.Atoi(splits[len(splits)-1])
-	utils.Die(err)
+	Die(err)
 
 	login = *notification.Repository.Owner.Login
 

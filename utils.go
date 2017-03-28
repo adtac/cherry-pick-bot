@@ -1,19 +1,17 @@
-package utils
+package main
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
-
-	"config"
 )
 
 func LoadEnvironment() {
 	m := make(map[string]*string)
-	m["GITHUB_ACCESS_TOKEN"] = &config.AccessToken
-	m["GITHUB_EMAIL"] = &config.Email
-	m["PRIVATE_KEY"] = &config.PrivateKey
+	m["GITHUB_ACCESS_TOKEN"] = &AccessToken
+	m["GITHUB_EMAIL"] = &Email
+	m["PRIVATE_KEY"] = &PrivateKey
 				
 	for key, val := range(m) {
 		var_val, present := os.LookupEnv(key)
@@ -22,7 +20,7 @@ func LoadEnvironment() {
 		}
 	}
 
-	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + config.PrivateKey)
+	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + PrivateKey)
 }
 
 // sanitizes the work directory (adds a slashes at the end) and creates
