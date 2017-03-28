@@ -6,18 +6,18 @@ import (
 
 // If the `GITHUB_ACCESS_TOKEN` environment variable is set, it would
 // be used as the access token. If not, you can manually set it below.
-var AccessToken = "Github personal access token"
+var accessToken = "Github personal access token"
 
-var WorkDir = "/tmp/work_dir/"
+var workDir = "/tmp/work_dir/"
 
 // If the `GITHUB_EMAIL` environment variable is set, it would
 // be used. Otherwise, you can manually set it below.
-var Email = "email@example.com"
+var email = "email@example.com"
 
 // If the `GITHUB_PRIVATE_KEY` environment variable is set, it would
 // be used. Otherwise, you can manually set it below.
-var PrivateKey = "/path/to/ssh/key"
+var privateKey = "/path/to/ssh/key"
 
-var SleepTime = 15 * time.Second
+var sleepTime = 15 * time.Second
 
-var GithubLogin = "cherry-pick-bot"
+var githubLogin = "cherry-pick-bot"

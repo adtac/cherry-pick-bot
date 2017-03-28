@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-func LoadEnvironment() {
+func loadEnvironment() {
 	m := make(map[string]*string)
-	m["GITHUB_ACCESS_TOKEN"] = &AccessToken
-	m["GITHUB_EMAIL"] = &Email
-	m["PRIVATE_KEY"] = &PrivateKey
+	m["GITHUB_ACCESS_TOKEN"] = &accessToken
+	m["GITHUB_EMAIL"] = &email
+	m["PRIVATE_KEY"] = &privateKey
 				
 	for key, val := range(m) {
 		var_val, present := os.LookupEnv(key)
@@ -20,12 +20,12 @@ func LoadEnvironment() {
 		}
 	}
 
-	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + PrivateKey)
+	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + privateKey)
 }
 
 // sanitizes the work directory (adds a slashes at the end) and creates
 // the directory
-func SanitizeWorkDir(dir string) string {
+func sanitizeWorkDir(dir string) string {
 	if !strings.HasSuffix(dir, "/") {
 		dir = dir + "/"
 	}
@@ -35,12 +35,12 @@ func SanitizeWorkDir(dir string) string {
 	return dir
 }
 
-func ExecCommand(name string, arg ...string) error {
+func execCommand(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	return cmd.Run()
 }
 
-func Die(err error) {
+func die(err error) {
 	if err != nil {
 		panic(fmt.Sprintf("%s", err))
 	}
