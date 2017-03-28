@@ -1,4 +1,4 @@
-package replies
+package main
 
 var InvalidEmail string = "You do not have a public email address. I need one to operate."
 
