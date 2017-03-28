@@ -6,10 +6,10 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func Authenticate() (context.Context, *github.Client) {
+func authenticate() (context.Context, *github.Client) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: AccessToken},
+		&oauth2.Token{AccessToken: accessToken},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 

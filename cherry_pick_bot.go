@@ -9,17 +9,17 @@ import (
 
 
 func main() {
-	LoadEnvironment()
-	WorkDir = SanitizeWorkDir(WorkDir)
+	loadEnvironment()
+	workDir = sanitizeWorkDir(workDir)
 
-	ctx, client := Authenticate()
+	ctx, client := authenticate()
 
 	for true {
 		notifications, resp, err := client.Activity.ListNotifications(
 			ctx, &github.NotificationListOptions{All: true})
 
 		if resp.Response.StatusCode != 200 {
-			Die(err)
+			die(err)
 		}
 
 		unreadNotifications := make([]*github.Notification, 0)
@@ -32,53 +32,53 @@ func main() {
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 		
 		for _, notification := range(unreadNotifications) {
-			login, project, PR_ID := ExtractNotification(notification)
+			login, project, PR_ID := extractNotification(notification)
 
-			ChangeRepo(login, project)
+			changeRepo(login, project)
 
 			if *notification.Reason == "mention" {
 				// check if email is public
-				mentions := GetMentions(client, ctx, login, project, PR_ID)
+				mentions := getMentions(client, ctx, login, project, PR_ID)
 				last_user, _, err := client.Users.Get(ctx, *mentions[len(mentions)-1].User.Login)
-				Die(err)
+				die(err)
 				if last_user.Email == nil {
-					Comment(client, ctx, login, project, PR_ID, InvalidEmail)
+					comment(client, ctx, login, project, PR_ID, invalidEmail)
 					continue
 				}
 
-				open_PR := GetOpenPullRequest(client, ctx, login, project)
+				open_PR := getOpenPullRequest(client, ctx, login, project)
 
 				// spoof the cherry-pick committer to make it look like the person commenting
 				// did it; also clear any ongoing rebases or cherry-picks
-				SpoofUser(last_user)
-				Clear()
+				spoofUser(last_user)
+				clear()
 
 				// fetch the PR (the branch actually)
-				PR := GetPullRequest(client, ctx, login, project, PR_ID)
-				Fetch(PR)
+				PR := getPullRequest(client, ctx, login, project, PR_ID)
+				fetch(PR)
 
 				// cherry-pick the PR's commits in a new branch
-				CheckoutBranch("cherry-pick-bot/patch")
-				if CherryPick(PR) != nil {
-					Comment(client, ctx, login, project, PR_ID, CannotCherryPick)
+				checkoutBranch("cherry-pick-bot/patch")
+				if cherryPick(PR) != nil {
+					comment(client, ctx, login, project, PR_ID, cannotCherryPick)
 					continue
 				}
 
 				// push to github
-				Push(login, project, "cherry-pick-bot/patch")
+				push(login, project, "cherry-pick-bot/patch")
 
-				comment := ""
+				commentText := ""
 				if open_PR == nil {
-					open_PR = OpenPR(client, ctx, login, project, "cherry-pick-bot/patch")
-					comment = "Done! Opened a new PR at " + *open_PR.HTMLURL
+					open_PR = openPR(client, ctx, login, project, "cherry-pick-bot/patch")
+					commentText = "Done! Opened a new PR at " + *open_PR.HTMLURL
 				} else {
-					comment = "Done! Updated " + *open_PR.HTMLURL
+					commentText = "Done! Updated " + *open_PR.HTMLURL
 				}
 
-				Comment(client, ctx, login, project, PR_ID, comment)
+				comment(client, ctx, login, project, PR_ID, commentText)
 			}
 		}
 
-		time.Sleep(SleepTime)
+		time.Sleep(sleepTime)
 	}
 }

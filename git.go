@@ -7,57 +7,57 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func SpoofUser(last_user *github.User) {
-	ExecCommand("git", "config", "user.email", *last_user.Email)
-	ExecCommand("git", "config", "user.name", *last_user.Name)
+func spoofUser(last_user *github.User) {
+	execCommand("git", "config", "user.email", *last_user.Email)
+	execCommand("git", "config", "user.name", *last_user.Name)
 }
 
-func Clear() {
-	ExecCommand("git", "cherry-pick", "--abort")
-	ExecCommand("git", "rebase", "--abort")
+func clear() {
+	execCommand("git", "cherry-pick", "--abort")
+	execCommand("git", "rebase", "--abort")
 }
 
-func Fetch(PR *github.PullRequest) {
+func fetch(PR *github.PullRequest) {
 	creator := *PR.User.Login
-	ExecCommand("git", "remote", "add", creator, *PR.Head.Repo.GitURL)
-	ExecCommand("git", "fetch", creator)
+	execCommand("git", "remote", "add", creator, *PR.Head.Repo.GitURL)
+	execCommand("git", "fetch", creator)
 }
 
-func CheckoutBranch(branch string) error {
-	if ExecCommand("git", "checkout", "-b", branch) != nil {
-		return ExecCommand("git", "checkout", branch)
+func checkoutBranch(branch string) error {
+	if execCommand("git", "checkout", "-b", branch) != nil {
+		return execCommand("git", "checkout", branch)
 	} else {
 		return nil
 	}
 }
 
-func CherryPick(PR *github.PullRequest) error {
-	return ExecCommand("git", "cherry-pick", *PR.Base.SHA + ".." + *PR.Head.SHA)
+func cherryPick(PR *github.PullRequest) error {
+	return execCommand("git", "cherry-pick", *PR.Base.SHA + ".." + *PR.Head.SHA)
 }
 
-func Push(login string, project string, branch string) {
-	ExecCommand("git", "push", "--set-upstream", "https://github.com/" + login + "/" + project, branch, "--force")
+func push(login string, project string, branch string) {
+	execCommand("git", "push", "--set-upstream", "https://github.com/" + login + "/" + project, branch, "--force")
 }
 
-func OpenPR(client *github.Client, ctx context.Context, login string, project string, head string) *github.PullRequest {
+func openPR(client *github.Client, ctx context.Context, login string, project string, head string) *github.PullRequest {
 	title := "cherry-pick-bot with a bunch of commits"
 	base := "master"
 
 	open_PR, _, err := client.PullRequests.Create(
 		ctx, login, project,
 		&github.NewPullRequest{Title: &title, Head: &head, Base: &base})
-	Die(err)
+	die(err)
 
 	return open_PR
 }
 
-func Rebase(branch string) error {
-	return ExecCommand("git", "pull", "--rebase", "origin", branch)
+func rebase(branch string) error {
+	return execCommand("git", "pull", "--rebase", "origin", branch)
 }
 
-func ChangeRepo(login string, project string) {
-	os.MkdirAll(WorkDir + login, 0775)
-	os.Chdir(WorkDir + login)
-	ExecCommand("git", "clone", "git://github.com/" + login + "/" + project)
-	os.Chdir(WorkDir + login + "/" + project)
+func changeRepo(login string, project string) {
+	os.MkdirAll(workDir + login, 0775)
+	os.Chdir(workDir + login)
+	execCommand("git", "clone", "git://github.com/" + login + "/" + project)
+	os.Chdir(workDir + login + "/" + project)
 }
