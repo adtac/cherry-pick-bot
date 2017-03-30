@@ -9,8 +9,8 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func getMentions(client *github.Client, ctx context.Context, login string, project string, PR_ID int) []*github.IssueComment {
-	comments, _, err := client.Issues.ListComments(ctx, login, project, PR_ID, &github.IssueListCommentsOptions{Direction: "asc"})
+func getMentions(client *github.Client, ctx context.Context, login string, project string, prId int) []*github.IssueComment {
+	comments, _, err := client.Issues.ListComments(ctx, login, project, prId, &github.IssueListCommentsOptions{Direction: "asc"})
 	die(err)
 
 	res := make([]*github.IssueComment, 0)
@@ -23,22 +23,22 @@ func getMentions(client *github.Client, ctx context.Context, login string, proje
 	return res
 }
 
-func getLastUserMentioned(client *github.Client, ctx context.Context, login string, project string, PR_ID int) (*github.User, error) {
-	mentions := getMentions(client, ctx, login, project, PR_ID)
-	last_user, _, err := client.Users.Get(ctx, *mentions[len(mentions)-1].User.Login)
+func getLastUserMentioned(client *github.Client, ctx context.Context, login string, project string, prId int) (*github.User, error) {
+	mentions := getMentions(client, ctx, login, project, prId)
+	lastUser, _, err := client.Users.Get(ctx, *mentions[len(mentions)-1].User.Login)
 	if err != nil {
 		return nil, err
 	}
-	return last_user, nil
+	return lastUser, nil
 }
 
-func comment(client *github.Client, ctx context.Context, login string, project string, PR_ID int, c string) {
+func comment(client *github.Client, ctx context.Context, login string, project string, prId int, c string) {
 	comment := &github.IssueComment{Body: &c}
-	client.Issues.CreateComment(ctx, login, project, PR_ID, comment)
+	client.Issues.CreateComment(ctx, login, project, prId, comment)
 }
 
-func getPullRequest(client *github.Client, ctx context.Context, login string, project string, PR_ID int) *github.PullRequest {
-	u := "/repos/" + login + "/" + project + "/pulls/" + fmt.Sprintf("%d", PR_ID)
+func getPullRequest(client *github.Client, ctx context.Context, login string, project string, prId int) *github.PullRequest {
+	u := "/repos/" + login + "/" + project + "/pulls/" + fmt.Sprintf("%d", prId)
 	req, _ := client.NewRequest("GET", u, nil)
 	pull := new(github.PullRequest)
 	client.Do(ctx, req, pull)
@@ -46,11 +46,11 @@ func getPullRequest(client *github.Client, ctx context.Context, login string, pr
 	return pull
 }
 
-func extractNotification(notification *github.Notification) (login string, project string, PR_ID int) {
+func extractNotification(notification *github.Notification) (login string, project string, prId int) {
 	project = *notification.Repository.Name
 
 	splits := strings.Split(*notification.Subject.URL, "/")
-	PR_ID, err := strconv.Atoi(splits[len(splits)-1])
+	prId, err := strconv.Atoi(splits[len(splits)-1])
 	die(err)
 
 	login = *notification.Repository.Owner.Login
@@ -58,11 +58,11 @@ func extractNotification(notification *github.Notification) (login string, proje
 	return
 }
 
-func getOpenPullRequest(client *github.Client, ctx context.Context, login string, project string) (PR *github.PullRequest) {
+func getOpenPullRequest(client *github.Client, ctx context.Context, login string, project string) (result *github.PullRequest) {
 	prs, _, _ := client.PullRequests.List(ctx, login, project, &github.PullRequestListOptions{})
 	for _, pr := range(prs) {
 		if *pr.User.Login == "cherry-pick-bot" {
-			PR = pr
+			result = pr
 		}
 	}
 
@@ -87,15 +87,15 @@ func getUnreadNotifications(client *github.Client, ctx context.Context) []*githu
 }
 
 
-func performCherryPick(client *github.Client, ctx context.Context, login string, project string, PR_ID int) error {
+func performCherryPick(client *github.Client, ctx context.Context, login string, project string, prId int) error {
 	// fetch the PR (the branch actually)
-	PR := getPullRequest(client, ctx, login, project, PR_ID)
-	fetch(PR)
+	pr := getPullRequest(client, ctx, login, project, prId)
+	fetch(pr)
 
 	// cherry-pick the PR's commits in a new branch
 	checkoutBranch("cherry-pick-bot/patch")
-	if err := cherryPick(PR); err != nil {
-		comment(client, ctx, login, project, PR_ID, cannotCherryPick)
+	if err := cherryPick(pr); err != nil {
+		comment(client, ctx, login, project, prId, cannotCherryPick)
 		return fmt.Errorf("cannot cherry-pick commits: %v", err)
 	}
 
@@ -105,7 +105,7 @@ func performCherryPick(client *github.Client, ctx context.Context, login string,
 	return nil
 }
 
-func createCherryPR(client *github.Client, ctx context.Context, login string, project string, PR_ID int) {
+func createCherryPR(client *github.Client, ctx context.Context, login string, project string, prId int) {
 	pr := getOpenPullRequest(client, ctx, login, project)
 	commentText := ""
 	if pr == nil {
@@ -115,5 +115,5 @@ func createCherryPR(client *github.Client, ctx context.Context, login string, pr
 		commentText = "Done! Updated " + *pr.HTMLURL
 	}
 
-	comment(client, ctx, login, project, PR_ID, commentText)
+	comment(client, ctx, login, project, prId, commentText)
 }
