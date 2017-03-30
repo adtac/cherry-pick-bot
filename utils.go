@@ -14,9 +14,9 @@ func loadEnvironment() {
 	m["PRIVATE_KEY"] = &privateKey
 				
 	for key, val := range(m) {
-		var_val, present := os.LookupEnv(key)
+		varVal, present := os.LookupEnv(key)
 		if present {
-			*val = var_val
+			*val = varVal
 		}
 	}
 

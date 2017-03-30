@@ -7,9 +7,9 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func spoofUser(last_user *github.User) {
-	execCommand("git", "config", "user.email", *last_user.Email)
-	execCommand("git", "config", "user.name", *last_user.Name)
+func spoofUser(lastUser *github.User) {
+	execCommand("git", "config", "user.email", *lastUser.Email)
+	execCommand("git", "config", "user.name", *lastUser.Name)
 }
 
 func clear() {
@@ -17,9 +17,9 @@ func clear() {
 	execCommand("git", "rebase", "--abort")
 }
 
-func fetch(PR *github.PullRequest) {
-	creator := *PR.User.Login
-	execCommand("git", "remote", "add", creator, *PR.Head.Repo.GitURL)
+func fetch(pr *github.PullRequest) {
+	creator := *pr.User.Login
+	execCommand("git", "remote", "add", creator, *pr.Head.Repo.GitURL)
 	execCommand("git", "fetch", creator)
 }
 
@@ -31,8 +31,8 @@ func checkoutBranch(branch string) error {
 	}
 }
 
-func cherryPick(PR *github.PullRequest) error {
-	return execCommand("git", "cherry-pick", *PR.Base.SHA + ".." + *PR.Head.SHA)
+func cherryPick(pr *github.PullRequest) error {
+	return execCommand("git", "cherry-pick", *pr.Base.SHA + ".." + *pr.Head.SHA)
 }
 
 func push(login string, project string, branch string) {
@@ -43,12 +43,12 @@ func openPR(client *github.Client, ctx context.Context, login string, project st
 	title := "cherry-pick-bot with a bunch of commits"
 	base := "master"
 
-	open_PR, _, err := client.PullRequests.Create(
+	openPR, _, err := client.PullRequests.Create(
 		ctx, login, project,
 		&github.NewPullRequest{Title: &title, Head: &head, Base: &base})
 	die(err)
 
-	return open_PR
+	return openPR
 }
 
 func rebase(branch string) error {

@@ -16,34 +16,34 @@ func main() {
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 		
 		for _, notification := range(unreadNotifications) {
-			login, project, PR_ID := extractNotification(notification)
+			login, project, prId := extractNotification(notification)
 
 			changeRepo(login, project)
 
 			if *notification.Reason == "mention" {
 				// check if email is public
-				last_user, err := getLastUserMentioned(client, ctx, login, project, PR_ID)
+				lastUser, err := getLastUserMentioned(client, ctx, login, project, prId)
 
 				if err != nil {
 					die(err)
 				}
 
-				if last_user.Email == nil {
-					comment(client, ctx, login, project, PR_ID, invalidEmail)
+				if lastUser.Email == nil {
+					comment(client, ctx, login, project, prId, invalidEmail)
 					continue
 				}
 
 				// spoof the cherry-pick committer to make it look like the person commenting
 				// did it; also clear any ongoing rebases or cherry-picks
-				spoofUser(last_user)
+				spoofUser(lastUser)
 				clear()
 
-				err = performCherryPick(client, ctx, login, project, PR_ID)
+				err = performCherryPick(client, ctx, login, project, prId)
 				if err != nil {
 					continue
 				}
 
-				createCherryPR(client, ctx, login, project, PR_ID)
+				createCherryPR(client, ctx, login, project, prId)
 			}
 		}
 
