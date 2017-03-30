@@ -9,9 +9,11 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func getMentions(client *github.Client, ctx context.Context, login string, project string, prId int) []*github.IssueComment {
+func getMentions(client *github.Client, ctx context.Context, login string, project string, prId int) ([]*github.IssueComment, error) {
 	comments, _, err := client.Issues.ListComments(ctx, login, project, prId, &github.IssueListCommentsOptions{Direction: "asc"})
-	die(err)
+	if err != nil {
+		return make([]*github.IssueComment, 0), err
+	}
 
 	res := make([]*github.IssueComment, 0)
 	for _, comment := range(comments) {
@@ -20,11 +22,15 @@ func getMentions(client *github.Client, ctx context.Context, login string, proje
 		}
 	}
 
-	return res
+	return res, nil
 }
 
 func getLastUserMentioned(client *github.Client, ctx context.Context, login string, project string, prId int) (*github.User, error) {
-	mentions := getMentions(client, ctx, login, project, prId)
+	mentions, err := getMentions(client, ctx, login, project, prId)
+	if err != nil {
+		return nil, err
+	}
+
 	lastUser, _, err := client.Users.Get(ctx, *mentions[len(mentions)-1].User.Login)
 	if err != nil {
 		return nil, err
@@ -46,12 +52,11 @@ func getPullRequest(client *github.Client, ctx context.Context, login string, pr
 	return pull
 }
 
-func extractNotification(notification *github.Notification) (login string, project string, prId int) {
+func extractNotification(notification *github.Notification) (login string, project string, prId int, err error) {
 	project = *notification.Repository.Name
 
 	splits := strings.Split(*notification.Subject.URL, "/")
-	prId, err := strconv.Atoi(splits[len(splits)-1])
-	die(err)
+	prId, err = strconv.Atoi(splits[len(splits)-1])
 
 	login = *notification.Repository.Owner.Login
 
@@ -69,12 +74,14 @@ func getOpenPullRequest(client *github.Client, ctx context.Context, login string
 	return
 }
 
-func getUnreadNotifications(client *github.Client, ctx context.Context) []*github.Notification {
+func getUnreadNotifications(client *github.Client, ctx context.Context) ([]*github.Notification, error) {
 	notifications, resp, err := client.Activity.ListNotifications(
 			ctx, &github.NotificationListOptions{All: true})
 
-	if resp.Response.StatusCode != 200 {
-		die(err)
+	if err != nil {
+		return nil, err
+	} else if s := resp.Response.StatusCode; s != 200 {
+		return nil, fmt.Errorf("response status code is %d", s)
 	}
 
 	unreadNotifications := make([]*github.Notification, 0)
@@ -83,7 +90,7 @@ func getUnreadNotifications(client *github.Client, ctx context.Context) []*githu
 			unreadNotifications = append(unreadNotifications, notification)
 		}
 	}
-	return unreadNotifications
+	return unreadNotifications, nil
 }
 
 
@@ -105,15 +112,20 @@ func performCherryPick(client *github.Client, ctx context.Context, login string,
 	return nil
 }
 
-func createCherryPR(client *github.Client, ctx context.Context, login string, project string, prId int) {
+func createCherryPR(client *github.Client, ctx context.Context, login string, project string, prId int) error {
 	pr := getOpenPullRequest(client, ctx, login, project)
 	commentText := ""
 	if pr == nil {
-		pr = openPR(client, ctx, login, project, "cherry-pick-bot/patch")
+		pr, err := openPR(client, ctx, login, project, "cherry-pick-bot/patch")
+		if err != nil {
+			return err
+		}
 		commentText = "Done! Opened a new PR at " + *pr.HTMLURL
 	} else {
 		commentText = "Done! Updated " + *pr.HTMLURL
 	}
 
 	comment(client, ctx, login, project, prId, commentText)
+
+	return nil
 }

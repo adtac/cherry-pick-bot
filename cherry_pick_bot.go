@@ -11,12 +11,18 @@ func main() {
 	ctx, client := authenticate()
 
 	for true {
-		unreadNotifications := getUnreadNotifications(client, ctx)
+		unreadNotifications, err := getUnreadNotifications(client, ctx)
+		if err != nil {
+			die(err)
+		}
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
 		
 		for _, notification := range(unreadNotifications) {
-			login, project, prId := extractNotification(notification)
+			login, project, prId, err := extractNotification(notification)
+			if err != nil {
+				die(err)
+			}
 
 			changeRepo(login, project)
 
@@ -43,7 +49,10 @@ func main() {
 					continue
 				}
 
-				createCherryPR(client, ctx, login, project, prId)
+				err = createCherryPR(client, ctx, login, project, prId)
+				if err != nil {
+					continue
+				}
 			}
 		}
 

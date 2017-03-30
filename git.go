@@ -39,16 +39,19 @@ func push(login string, project string, branch string) {
 	execCommand("git", "push", "--set-upstream", "https://github.com/" + login + "/" + project, branch, "--force")
 }
 
-func openPR(client *github.Client, ctx context.Context, login string, project string, head string) *github.PullRequest {
+func openPR(client *github.Client, ctx context.Context, login string, project string, head string) (*github.PullRequest, error) {
 	title := "cherry-pick-bot with a bunch of commits"
 	base := "master"
 
 	openPR, _, err := client.PullRequests.Create(
 		ctx, login, project,
 		&github.NewPullRequest{Title: &title, Head: &head, Base: &base})
-	die(err)
+	if err != nil {
+		return nil, err
+	}
 
-	return openPR
+
+	return openPR, nil
 }
 
 func rebase(branch string) error {
