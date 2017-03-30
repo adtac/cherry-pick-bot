@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -13,7 +14,7 @@ func main() {
 	for true {
 		unreadNotifications, err := getUnreadNotifications(client, ctx)
 		if err != nil {
-			die(err)
+			die(fmt.Errorf("error while getting unread notifications: %v", err))
 		}
 
 		client.Activity.MarkNotificationsRead(ctx, time.Now())
@@ -21,7 +22,7 @@ func main() {
 		for _, notification := range(unreadNotifications) {
 			login, project, prId, err := extractNotification(notification)
 			if err != nil {
-				die(err)
+				die(fmt.Errorf("error while extracting notification data: %v", err))
 			}
 
 			changeRepo(login, project)
@@ -31,7 +32,7 @@ func main() {
 				lastUser, err := getLastUserMentioned(client, ctx, login, project, prId)
 
 				if err != nil {
-					die(err)
+					die(fmt.Errorf("error while getting mentioner: %v", err))
 				}
 
 				if lastUser.Email == nil {
