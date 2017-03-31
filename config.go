@@ -28,12 +28,14 @@ type config struct {
 var conf config
 
 func loadConfig(filename string) (err error) {
+	logger.Infof("Loading configuration file (%s) ...", filename)
 	_, err = toml.DecodeFile(filename, &conf)
 	conf.WorkDir = sanitizeWorkDir(conf.WorkDir)
 	return
 }
 
 func loadEnvironment() {
+	logger.Info("Looking up environment variables ...")
 	m := make(map[string]*string)
 	m["GITHUB_ACCESS_TOKEN"] = &conf.AccessToken
 	m["GITHUB_EMAIL"] = &conf.Email
