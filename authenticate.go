@@ -7,6 +7,8 @@ import (
 )
 
 func authenticate() (context.Context, *github.Client) {
+	logger.Info("Setting up Github client ...")
+
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: conf.AccessToken},

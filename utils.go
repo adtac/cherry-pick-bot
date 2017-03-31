@@ -26,6 +26,6 @@ func execCommand(name string, arg ...string) error {
 
 func die(err error) {
 	if err != nil {
-		panic(fmt.Sprintf("%s", err))
+		logger.Panic(fmt.Errorf("%s", err))
 	}
 }
