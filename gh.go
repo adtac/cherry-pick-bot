@@ -17,7 +17,7 @@ func getMentions(client *github.Client, ctx context.Context, login string, proje
 
 	res := make([]*github.IssueComment, 0)
 	for _, comment := range(comments) {
-		if strings.Contains(*comment.Body, "@" + githubLogin) {
+		if strings.Contains(*comment.Body, "@" + conf.GithubLogin) {
 			res = append(res, comment)
 		}
 	}

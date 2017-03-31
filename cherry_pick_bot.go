@@ -2,13 +2,19 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"time"
 )
 
-func main() {
-	loadEnvironment()
-	workDir = sanitizeWorkDir(workDir)
+var configPath = flag.String("config", "config.toml", "Path for the config file")
 
+func main() {
+	err := loadConfig(*configPath)
+	if err != nil {
+		die(fmt.Errorf("error while reading configuration file: %v", err))
+	}
+
+	loadEnvironment()
 	ctx, client := authenticate()
 
 	for true {
@@ -57,6 +63,6 @@ func main() {
 			}
 		}
 
-		time.Sleep(sleepTime)
+		time.Sleep(time.Duration(conf.SleepTime.Nanoseconds()))
 	}
 }

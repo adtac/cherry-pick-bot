@@ -1,23 +1,50 @@
 package main
 
 import (
-    "time"
+	"os"
+	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
-// If the `GITHUB_ACCESS_TOKEN` environment variable is set, it would
-// be used as the access token. If not, you can manually set it below.
-var accessToken = "Github personal access token"
+type duration struct {
+	time.Duration
+}
 
-var workDir = "/tmp/work_dir/"
+func (d *duration) UnmarshalText(text []byte) (err error) {
+	d.Duration, err = time.ParseDuration(string(text))
+	return
+}
 
-// If the `GITHUB_EMAIL` environment variable is set, it would
-// be used. Otherwise, you can manually set it below.
-var email = "email@example.com"
+type config struct {
+	AccessToken string
+	WorkDir     string
+	Email       string
+	PrivateKey  string
+	SleepTime   duration
+	GithubLogin string
+}
 
-// If the `GITHUB_PRIVATE_KEY` environment variable is set, it would
-// be used. Otherwise, you can manually set it below.
-var privateKey = "/path/to/ssh/key"
+var conf config
 
-var sleepTime = 15 * time.Second
+func loadConfig(filename string) (err error) {
+	_, err = toml.DecodeFile(filename, &conf)
+	conf.WorkDir = sanitizeWorkDir(conf.WorkDir)
+	return
+}
 
-var githubLogin = "cherry-pick-bot"
+func loadEnvironment() {
+	m := make(map[string]*string)
+	m["GITHUB_ACCESS_TOKEN"] = &conf.AccessToken
+	m["GITHUB_EMAIL"] = &conf.Email
+	m["PRIVATE_KEY"] = &conf.PrivateKey
+
+	for key, val := range(m) {
+		varVal, present := os.LookupEnv(key)
+		if present {
+			*val = varVal
+		}
+	}
+
+	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + conf.PrivateKey)
+}

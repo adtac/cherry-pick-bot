@@ -7,22 +7,6 @@ import (
 	"strings"
 )
 
-func loadEnvironment() {
-	m := make(map[string]*string)
-	m["GITHUB_ACCESS_TOKEN"] = &accessToken
-	m["GITHUB_EMAIL"] = &email
-	m["PRIVATE_KEY"] = &privateKey
-				
-	for key, val := range(m) {
-		varVal, present := os.LookupEnv(key)
-		if present {
-			*val = varVal
-		}
-	}
-
-	os.Setenv("GIT_SSH_COMMAND", "ssh -i " + privateKey)
-}
-
 // sanitizes the work directory (adds a slashes at the end) and creates
 // the directory
 func sanitizeWorkDir(dir string) string {
