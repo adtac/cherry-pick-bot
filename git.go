@@ -59,8 +59,8 @@ func rebase(branch string) error {
 }
 
 func changeRepo(login string, project string) {
-	os.MkdirAll(workDir + login, 0775)
-	os.Chdir(workDir + login)
+	os.MkdirAll(conf.WorkDir + login, 0775)
+	os.Chdir(conf.WorkDir + login)
 	execCommand("git", "clone", "git://github.com/" + login + "/" + project)
-	os.Chdir(workDir + login + "/" + project)
+	os.Chdir(conf.WorkDir + login + "/" + project)
 }

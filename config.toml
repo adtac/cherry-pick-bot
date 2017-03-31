@@ -1,0 +1,17 @@
+# If the `GITHUB_ACCESS_TOKEN` environment variable is set, it would
+# be used as the access token. If not, you can manually set it below.
+AccessToken = "Github personal access token"
+
+WorkDir = "/tmp/work_dir"
+
+# If the `GITHUB_EMAIL` environment variable is set, it would
+# be used. Otherwise, you can manually set it below.
+Email = "email@example.com"
+
+# If the `GITHUB_PRIVATE_KEY` environment variable is set, it would
+# be used. Otherwise, you can manually set it below.
+PrivateKey = "/path/to/ssh/key"
+
+SleepTime = "15s"
+
+GithubLogin = "cherry-pick-bot"
