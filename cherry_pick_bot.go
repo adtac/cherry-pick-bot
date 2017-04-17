@@ -62,7 +62,7 @@ func main() {
 				spoofUser(lastUser)
 				clear()
 
-				logger.Info("Performing cherry pick for %s/%s #%d ...", login, project, prId)
+				logger.Infof("Performing cherry pick for %s/%s #%d ...", login, project, prId)
 				err = performCherryPick(client, ctx, login, project, prId)
 				if err != nil {
 					logger.Error(err)
