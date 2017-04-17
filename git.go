@@ -36,7 +36,7 @@ func cherryPick(pr *github.PullRequest) error {
 }
 
 func push(login string, project string, branch string) {
-	execCommand("git", "push", "--set-upstream", "https://github.com/" + login + "/" + project, branch, "--force")
+	execCommand("git", "push", "--set-upstream", "git@github.com:" + login + "/" + project, branch, "--force")
 }
 
 func openPR(client *github.Client, ctx context.Context, login string, project string, head string) (*github.PullRequest, error) {
@@ -61,6 +61,6 @@ func rebase(branch string) error {
 func changeRepo(login string, project string) {
 	os.MkdirAll(conf.WorkDir + login, 0775)
 	os.Chdir(conf.WorkDir + login)
-	execCommand("git", "clone", "git://github.com/" + login + "/" + project)
+	execCommand("git", "clone", "git@github.com:/" + login + "/" + project)
 	os.Chdir(conf.WorkDir + login + "/" + project)
 }
