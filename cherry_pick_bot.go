@@ -49,10 +49,12 @@ func main() {
 					die(fmt.Errorf("error while getting mentioner: %v", err))
 				}
 
-				logger.Infof("Got a call from %s on %s/%s #%d", lastUser.Login, login, project, prId)
+				userName := *lastUser.Login
+
+				logger.Infof("Got a call from %s on %s/%s #%d", userName, login, project, prId)
 
 				if lastUser.Email == nil {
-					logger.Infof("%s email isn't public.. Skipping...", lastUser.Login)
+					logger.Infof("%s email isn't public.. Skipping...", userName)
 					comment(client, ctx, login, project, prId, invalidEmail)
 					continue
 				}
