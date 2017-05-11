@@ -1,6 +1,7 @@
 package main
 
 import (
+    "errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -30,6 +31,10 @@ func getLastUserMentioned(client *github.Client, ctx context.Context, login stri
 	if err != nil {
 		return nil, err
 	}
+
+    if len(mentions) == 0 {
+        return nil, errors.New("zero mentions")
+    }
 
 	lastUser, _, err := client.Users.Get(ctx, *mentions[len(mentions)-1].User.Login)
 	if err != nil {

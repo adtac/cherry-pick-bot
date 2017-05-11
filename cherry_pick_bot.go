@@ -46,7 +46,7 @@ func main() {
 				lastUser, err := getLastUserMentioned(client, ctx, login, project, prId)
 
 				if err != nil {
-					die(fmt.Errorf("error while getting mentioner: %v", err))
+					logger.Infof("error while getting mentioner: %v", err)
 				}
 
 				userName := *lastUser.Login
